@@ -1,6 +1,8 @@
 firefly-iii/.env
 firefly-iii/upload/*.data
 freshrss/**
+heimdall/!.gitkeep
+heimdall/**
 netdata/log/*.log
 prometheus/data/!.gitkeep
 prometheus/data/*

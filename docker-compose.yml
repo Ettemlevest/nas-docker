@@ -71,6 +71,7 @@ services:
   freshrss:
     image: linuxserver/freshrss
     container_name: freshrss
+    restart: unless-stopped
     environment:
       - PUID=1026
       - PGID=100
@@ -84,6 +85,19 @@ services:
       - 32002:80
     depends_on:
       - mariadb
+
+  heimdall:
+    image: linuxserver/heimdall
+    container_name: heimdall
+    restart: unless-stopped
+    environment:
+      - PUID=1026
+      - PGID=100
+      - TZ=Europe/Budapest
+    volumes:
+      - /volume1/dev/docker/heimdall/:/config
+    ports:
+      - 32000:80
 
 #  transmission:
 #    image: linuxserver/transmission

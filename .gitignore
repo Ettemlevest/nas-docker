@@ -1,0 +1,6 @@
+firefly-iii/.env
+firefly-iii/upload/*.data
+freshrss/**
+netdata/log/*.log
+prometheus/data/!.gitkeep
+prometheus/data/*

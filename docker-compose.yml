@@ -1,0 +1,109 @@
+version: '3'
+
+services:
+  netdata:
+    image: netdata/netdata
+    container_name: netdata
+    ports:
+      - 19999:19999
+    environment:
+      - DOCKER_HOST=proxy:2375
+    restart: unless-stopped
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - apparmor:unconfined
+    volumes:
+      - /volume1/dev/docker/netdata/config:/etc/netdata
+      - /volume1/dev/docker/netdata/log:/var/log/netdata
+      - /etc/passwd:/host/etc/passwd:ro
+      - /etc/group:/host/etc/group:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+
+  proxy:
+    image: tecnativa/docker-socket-proxy
+    container_name: proxy
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - CONTAINERS=1
+
+  mariadb:
+    image: mariadb:10.4-bionic
+    container_name: mariadb
+    restart: unless-stopped
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=Password.1
+    volumes:
+      - mariadb-database:/var/lib/mysql
+
+  firefly:
+    image: jc5x/firefly-iii:latest
+    container_name: firefly-iii
+    restart: unless-stopped
+    volumes:
+      - /volume1/dev/docker/firefly-iii/upload:/var/www/html/storage/upload
+    env_file: /volume1/dev/docker/firefly-iii/.env
+    ports:
+      - 32004:8080
+    depends_on:
+      - mariadb
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    restart: unless-stopped
+    user: root
+    volumes:
+      - /volume1/dev/docker/prometheus/config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - /volume1/dev/docker/prometheus/data:/prometheus
+    ports:
+      - 9090:9090
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=5y'
+
+  freshrss:
+    image: linuxserver/freshrss
+    container_name: freshrss
+    environment:
+      - PUID=1026
+      - PGID=100
+      - TZ=Europe/Budapest
+      - CRON_MIN=*/20
+    volumes:
+      - freshrss-config:/config
+      - /volume1/dev/docker/freshrss/data:/var/www/FreshRSS/data
+      - /volume1/dev/docker/freshrss/extensions:/var/www/FreshRSS/extensions
+    ports:
+      - 32002:80
+    depends_on:
+      - mariadb
+
+#  transmission:
+#    image: linuxserver/transmission
+#    container_name: transmission
+#    environment:
+#      - PUID=1026
+#      - PGID=100
+#      - TZ=Europe/Budapest
+#      - USER=ettemlevest
+#      - PASS=ZvWtvpQS4uK-uLtXmuzhb0Zi
+#      - UMASK=022
+#    volumes:
+#      - /volume1/dev/docker/transmission:/config
+#      - /volume1/dev/torrent:/downloads
+#      - /volume1/dev/torrent/watch:/watch
+#    ports:
+#      - 9091:9091
+#      - 54113:51413
+#      - 54113:51413/udp
+
+volumes:
+  mariadb-database:
+  freshrss-config:

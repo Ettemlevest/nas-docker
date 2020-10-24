@@ -12,3 +12,4 @@ Containers used on my local Synology NAS running on Docker v18.09.0-0513.
 * Netdata
 * Proxy *(for netdata)*
 * Prometheus
+* Heimdall
